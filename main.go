@@ -7,7 +7,6 @@ import (
 
 	"github.com/mccurdyc/websocket-example/client"
 	"github.com/mccurdyc/websocket-example/server"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -29,11 +28,9 @@ func init() {
 func main() {
 	switch strings.ToLower(connType) {
 	case "client":
+		log.Printf("client connecting to server running on %s\n", serverPort)
 		c := client.New()
-		if err := c.Connect(serverHost, serverPort); err != nil {
-			log.Println(errors.Wrap(err, "error connecting to server"))
-			return
-		}
+		c.Connect(serverHost, serverPort)
 		log.Printf("client connected to server running on %s\n", serverPort)
 	default:
 		s := server.NewService(serverPort)

@@ -13,13 +13,13 @@ type ConnectionPool struct {
 	clients []*websocket.Conn
 
 	// bi-directional channel
-	channel chan []byte
+	broadcast chan []byte
 }
 
 func NewConnectionPool() *ConnectionPool {
 	return &ConnectionPool{
-		clients: []*websocket.Conn{},
-		channel: make(chan []byte),
+		clients:   []*websocket.Conn{},
+		broadcast: make(chan []byte),
 	}
 }
 
@@ -36,24 +36,28 @@ func (cp *ConnectionPool) readMessages() {
 			_, msg, err := c.ReadMessage()
 
 			if err != nil {
+				// if we encounter errors, need to remove client from cp.clients
 				log.Println(errors.Wrap(err, "error reading message from client"))
 				return
 			}
 
-			fmt.Printf("message: %s\n", msg)
-			// cp.channel <- string(msg)
+			cp.broadcast <- msg
 		}
 	}
 }
 
-// func (cp *ConnectionPool) writeMessages() {
-// 	for {
-// 		if err := cp.clientWriteMessage(websocket.TextMessage, []byte("hello")); err != nil {
-// 			log.Println(err)
-// 			return
-// 		}
-// 	}
-// }
+func (cp *ConnectionPool) writeMessages() {
+	msg := <-cp.broadcast
+
+	for _, c := range cp.clients {
+		fmt.Printf("message: %v\n", string(msg))
+		if err := c.WriteMessage(websocket.TextMessage, msg); err != nil {
+			// if we encounter errors, need to remove client from cp.clients
+			log.Println(errors.Wrap(err, "error writing message to all clients"))
+			return
+		}
+	}
+}
 
 func Chat(w http.ResponseWriter, r *http.Request) {
 	cp := NewConnectionPool()
@@ -76,4 +80,5 @@ func Chat(w http.ResponseWriter, r *http.Request) {
 
 	// writeMessages(c)
 	go cp.readMessages()
+	go cp.writeMessages()
 }
