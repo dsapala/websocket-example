@@ -10,31 +10,25 @@ import (
 )
 
 var (
-	serverPort string
-	serverHost string
-	connType   string
+	serverHost = flag.String("host", "localhost", "server host")
+	serverPort = flag.Int("port", 8080, "server port")
+	connType   = flag.String("connection", "server", "connection type [server|client]")
 )
 
 func init() {
-	flag.StringVar(&serverHost, "host", "localhost", "server host")
-	flag.StringVar(&serverHost, "h", "localhost", "server host")
-	flag.StringVar(&serverPort, "port", ":8080", "server port")
-	flag.StringVar(&serverPort, "p", ":8080", "server port")
-	flag.StringVar(&connType, "connection", "server", "connection type [server|client]")
-	flag.StringVar(&connType, "c", "server", "connection type [server|client]")
 	flag.Parse()
 }
 
 func main() {
-	switch strings.ToLower(connType) {
+	switch strings.ToLower(*connType) {
 	case "client":
-		log.Printf("client connecting to server running on %s\n", serverPort)
+		log.Printf("client connecting to server running on %d\n", *serverPort)
 		c := client.New()
-		c.Connect(serverHost, serverPort)
-		log.Printf("client connected to server running on %s\n", serverPort)
+		c.Connect(*serverHost, *serverPort)
+		log.Printf("client connected to server running on %d\n", *serverPort)
 	default:
-		s := server.NewService(serverPort)
+		s := server.NewService(*serverHost, *serverPort)
+		log.Printf("started server on %d\n", *serverPort)
 		s.Start()
-		log.Printf("started server on %s\n", serverPort)
 	}
 }

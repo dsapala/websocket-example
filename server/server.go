@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -13,11 +14,13 @@ type Service struct {
 	Server   http.Server
 }
 
-func NewService(p string) *Service {
+func NewService(host string, port int) *Service {
+	addr := fmt.Sprintf("%s:%d", host, port)
+
 	return &Service{
 		Launched: time.Now(),
 		Server: http.Server{
-			Addr:         p,
+			Addr:         addr,
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 5 * time.Second,
 		},

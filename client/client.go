@@ -22,13 +22,13 @@ func New() *Client {
 	}
 }
 
-func (c *Client) Connect(host, port string) error {
+func (c *Client) Connect(host string, port int) error {
 	dialer := &websocket.Dialer{
 		HandshakeTimeout: 5 * time.Second,
 	}
 
 	var err error
-	c.Conn, _, err = dialer.Dial(fmt.Sprintf("ws://%s%s/chat", host, port), nil)
+	c.Conn, _, err = dialer.Dial(fmt.Sprintf("ws://%s:%d/chat", host, port), nil)
 
 	if err != nil {
 		return err
